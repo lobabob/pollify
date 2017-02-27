@@ -1,5 +1,7 @@
 # eventstream
-Will generate a stream of events by polling a provided function at a specified rate. Is non-blocking.
+Will generate a stream of events by polling a provided function at a specified rate. This rate is the minimum rate, not
+the exact rate (similar to setTimeout). The provided function is only polled when the previous execution has completed.
+This has the effect of making async calls execute in sequence.
 
 ## Usage
 
