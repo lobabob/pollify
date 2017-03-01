@@ -10,6 +10,8 @@ Will produce 'data' events by polling a function at a given rate. This rate is t
 
 ## Examples
 
+Polls are automatically started for you when you create them.
+
 ```
 'use strict';
 const Pollify = require('pollify');
