@@ -1,65 +1,37 @@
-# eventstream
-Will generate a stream of events by polling a provided function at a specified rate. This rate is the minimum rate, not
-the exact rate (similar to setTimeout). The provided function is only polled when the previous execution has completed.
-This has the effect of making async calls execute in sequence.
+# Pollify
 
-## Usage
+Will produce 'data' events by polling a function at a given rate. This rate is the minimum rate, not the exact rate (similar to setTimeout). The provided function is only polled when the previous execution has completed. This has the effect of making async calls execute in series.
 
-With regular functions:
-```
-const EventStream = require('eventstream');
+### Features
 
-function fn (arg1, arg2) {
-  return arg1 + arg2;
-}
+* Can poll promises, callback functions, and regular functions.
+* Pollify is non-blocking. Will continuously poll a synchronous function in a non-blocking way.
+* Handles whether to use setTimeout or setImmediate for you.
 
-const eventStream = EventStream({ rate: 1000, mode: 'return' }, fn, arg1, arg2);
-
-eventStream.on('data', (data, timestamp) => {
-  console.log(data);
-});
-
-eventStream.on('error', e => {
-  console.error(e);
-});
-```
-
-With functions that take a callback:
+## Examples
 
 ```
-const EventStream = require('eventstream');
+'use strict';
+const Pollify = require('pollify');
 
-function fn (arg1, arg2, cb) {
-  return cb(null, arg1 + arg2);
-}
+// Create a poll for function fn that returns a promise
+let poll = Pollify({ rate: 1000, mode: 'promise' }, fn, arg1, arg2);
 
-const eventStream = EventStream({ rate: 1000, mode: 'callback' }, fn, arg1, arg2);
+// Create a poll for function fn that returns a callback
+poll = Pollify({ rate: 1000, mode: 'callback' }, fn, arg1, arg2);
 
-eventStream.on('data', (data, timestamp) => {
-  console.log(data);
-});
+// Create a poll for function fn that returns a regular value
+poll = Pollify({ rate: 1000, mode: 'return' }, fn, arg1, arg2);
 
-eventStream.on('error', e => {
-  console.error(e);
-});
-```
+// Listen to the 'data' event that returns data from the function execution
+poll.on('data', (data, timestamp) => console.log(data));
 
-With promises:
+// Listen to the error event that returns any errors thrown during function execution
+poll.on('error', console.error);
 
-```
-const EventStream = require('eventstream');
+// Stop the poll
+poll.stop()
 
-function fn (arg1, arg2, cb) {
-  return Promise.resolve(arg1 + arg2);
-}
-
-const eventStream = EventStream({ rate: 1000, mode: 'promise' }, fn, arg1, arg2);
-
-eventStream.on('data', (data, timestamp) => {
-  console.log(data);
-});
-
-eventStream.on('error', e => {
-  console.error(e);
-});
+// Start the poll again
+poll.start()
 ```
