@@ -4,22 +4,22 @@
 const chai = require('chai');
 const expect = chai.expect;
 
-const EventStream = require('..');
+const Pollify = require('..');
 
-describe('EventStream', function () {
+describe('Pollify', function () {
   const rate = 20;
 
   it('starts polling automatically', function (done) {
     const times = [];
     const maxPolls = 2;
-    const eventStream = EventStream({ rate, mode: 'return' }, () => '');
+    const poll = Pollify({ rate, mode: 'return' }, () => '');
 
-    eventStream.on('data', (data, time) => {
+    poll.on('data', (data, time) => {
       times.push(time);
 
       if (times.length === maxPolls) {
         expect(times[1] - times[0]).to.be.at.least(rate);
-        eventStream.stop();
+        poll.stop();
         done();
       }
     });
@@ -30,24 +30,24 @@ describe('EventStream', function () {
     for (let i = 0; i < randLength; ++i) {
       randomArray.push(i);
     }
-    const eventStream = EventStream({ rate, mode: 'return' }, (...args) => args, ...randomArray);
+    const poll = Pollify({ rate, mode: 'return' }, (...args) => args, ...randomArray);
 
-    eventStream.on('data', data => {
+    poll.on('data', data => {
       expect(data).to.eql(randomArray);
-      eventStream.stop();
+      poll.stop();
       done();
     });
   });
   it('can stop polling', function (done) {
     let numberOfPolls = 0;
     const maxPolls = 2;
-    const eventStream = EventStream({ rate, mode: 'return' }, () => '');
+    const poll = Pollify({ rate, mode: 'return' }, () => '');
 
-    eventStream.on('data', () => {
+    poll.on('data', () => {
       ++numberOfPolls;
 
       if (numberOfPolls === maxPolls) {
-        eventStream.stop();
+        poll.stop();
         setTimeout(() => {
           expect(numberOfPolls).to.equal(maxPolls);
           done();
@@ -58,25 +58,25 @@ describe('EventStream', function () {
   it('can start polling again after stopping', function (done) {
     let numberOfPolls = 0;
     const maxPolls = 2;
-    const eventStream = EventStream({ rate, mode: 'return' }, () => '');
-    let timeoutFlag = false; // Used to indicate that eventStream has restarted after a timeout
+    const poll = Pollify({ rate, mode: 'return' }, () => '');
+    let timeoutFlag = false; // Used to indicate that poll has restarted after a timeout
 
-    eventStream.on('data', () => {
+    poll.on('data', () => {
       ++numberOfPolls;
 
       if (numberOfPolls === maxPolls) {
-        eventStream.stop();
+        poll.stop();
 
         setTimeout(() => {
           timeoutFlag = true;
           expect(numberOfPolls).to.equal(maxPolls);
-          eventStream.start();
+          poll.start();
         }, rate * 2);
       }
 
       if (timeoutFlag) {
         expect(numberOfPolls).to.be.above(maxPolls);
-        eventStream.stop();
+        poll.stop();
         done();
       }
     });
@@ -84,12 +84,12 @@ describe('EventStream', function () {
   it('does not have any effect when repeated start calls are made', function (done) {
     const times = [];
     const maxPolls = 10;
-    const eventStream = EventStream({ rate, mode: 'return' }, () => '');
-    eventStream.start();
-    eventStream.start();
-    eventStream.start();
+    const poll = Pollify({ rate, mode: 'return' }, () => '');
+    poll.start();
+    poll.start();
+    poll.start();
 
-    eventStream.on('data', (data, time) => {
+    poll.on('data', (data, time) => {
       times.push(time);
 
       if (times.length === maxPolls) {
@@ -98,7 +98,7 @@ describe('EventStream', function () {
           expect(times[i] - times[i - 1]).to.be.at.least(rate);
         }
 
-        eventStream.stop();
+        poll.stop();
         done();
       }
     });
@@ -106,85 +106,85 @@ describe('EventStream', function () {
   it('does not have any effect when repeated stop calls are made', function (done) {
     let numberOfPolls = 0;
     const maxPolls = 2;
-    const eventStream = EventStream({ rate, mode: 'return' }, () => '');
-    let timeoutFlag = false; // Used to indicate that eventStream has restarted after a timeout
+    const poll = Pollify({ rate, mode: 'return' }, () => '');
+    let timeoutFlag = false; // Used to indicate that poll has restarted after a timeout
 
-    eventStream.on('data', () => {
+    poll.on('data', () => {
       ++numberOfPolls;
 
       if (numberOfPolls === maxPolls) {
-        eventStream.stop();
-        eventStream.stop();
-        eventStream.stop();
+        poll.stop();
+        poll.stop();
+        poll.stop();
 
         setTimeout(() => {
           timeoutFlag = true;
           expect(numberOfPolls).to.equal(maxPolls);
-          eventStream.start();
+          poll.start();
         }, rate * 2);
       }
 
       if (timeoutFlag) {
         expect(numberOfPolls).to.be.above(maxPolls);
-        eventStream.stop();
+        poll.stop();
         done();
       }
     });
   });
   describe('Polling Function Types', function () {
     it('polls regular functions', function (done) {
-      const eventStream = EventStream({ rate, mode: 'return' }, () => '');
+      const poll = Pollify({ rate, mode: 'return' }, () => '');
 
-      eventStream.on('data', () => {
-        eventStream.stop();
+      poll.on('data', () => {
+        poll.stop();
         done();
       });
     });
     it('polls callback functions', function (done) {
-      const eventStream = EventStream({ rate, mode: 'callback' }, cb => cb(null));
+      const poll = Pollify({ rate, mode: 'callback' }, cb => cb(null));
 
-      eventStream.on('data', () => {
-        eventStream.stop();
+      poll.on('data', () => {
+        poll.stop();
         done();
       });
     });
     it('polls promise functions', function (done) {
-      const eventStream = EventStream({ rate, mode: 'promise' }, () => Promise.resolve());
+      const poll = Pollify({ rate, mode: 'promise' }, () => Promise.resolve());
 
-      eventStream.on('data', () => {
-        eventStream.stop();
+      poll.on('data', () => {
+        poll.stop();
         done();
       });
     });
     it('emits error events for regular function polling', function (done) {
       const e = new Error();
-      const eventStream = EventStream({ rate, mode: 'return' }, () => {
+      const poll = Pollify({ rate, mode: 'return' }, () => {
         throw e;
       });
 
-      eventStream.on('error', err => {
+      poll.on('error', err => {
         expect(err).to.equal(e);
-        eventStream.stop();
+        poll.stop();
         done();
       });
     });
     it('emits error events for callback function polling', function (done) {
       const e = new Error();
-      const eventStream = EventStream({ rate, mode: 'callback' }, cb => cb(e));
+      const poll = Pollify({ rate, mode: 'callback' }, cb => cb(e));
 
-      eventStream.on('error', err => {
+      poll.on('error', err => {
         expect(err).to.equal(e);
-        eventStream.stop();
+        poll.stop();
         done();
       });
     });
     it('emits error events for promise function polling', function (done) {
       const e = new Error();
-      const eventStream = EventStream({ rate, mode: 'promise' }, () => Promise.reject(e));
+      const poll = Pollify({ rate, mode: 'promise' }, () => Promise.reject(e));
 
-      eventStream.on('error', err => {
+      poll.on('error', err => {
         expect(err).to.equal(e);
-        eventStream.stop();
+        poll.stop();
         done();
       });
     });
