@@ -27,7 +27,8 @@ function fn(arg1, arg2, cb) { ... }
 let poll = Pollify({ rate: 1000, mode: 'callback' }, fn, arg1, arg2);
 ```
 
-* `Pollify({options}, pollFn, pollFnArg1, pollFnArg2, ...)`
+`Pollify({options}, pollFn, pollFnArg1, pollFnArg2, ...)`
+
 * `{options.rate}` the rate with which to poll pollFn
 * `{options.mode}` the return type of pollFn
   * Can be `callback`, `promise`, or `return` for regular functions
