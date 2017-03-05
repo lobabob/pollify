@@ -1,5 +1,3 @@
-/* eslint-env mocha */
-/* eslint prefer-arrow-callback: off */
 'use strict';
 const chai = require('chai');
 const expect = chai.expect;
